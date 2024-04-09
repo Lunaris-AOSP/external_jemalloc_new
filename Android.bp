@@ -59,6 +59,7 @@ common_cflags = [
     "-fvisibility=hidden",
     "-O3",
     "-funroll-loops",
+    "-fno-stack-protector",
 
     // The following flags are for avoiding errors when compiling.
     "-Wno-unused-parameter",
