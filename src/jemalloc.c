@@ -66,6 +66,14 @@ bool	opt_junk_free =
 bool	opt_utrace = false;
 bool	opt_xmalloc = false;
 bool	opt_zero = false;
+
+void je_set_zero_filling(bool val) {
+	// This must be called before anything's initialized
+	assert(!malloc_initialized());
+	// This is the first accessor, a simple compiler barrier is enough
+	*(volatile bool*)&opt_zero = val;
+}
+
 unsigned	opt_narenas = 0;
 
 unsigned	ncpus;
