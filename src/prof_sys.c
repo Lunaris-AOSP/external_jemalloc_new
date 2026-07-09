@@ -616,7 +616,8 @@ prof_get_pid_namespace(void) {
 	if (linklen > 0) {
 		// Trim the trailing "]"
 		buf[linklen - 1] = '\0';
-		char *index = strtok(buf, "pid:[");
+		char *saveptr = NULL;
+		char *index = strtok_r(buf, "pid:[", &saveptr);
 		ret = atol(index);
 	}
 #endif

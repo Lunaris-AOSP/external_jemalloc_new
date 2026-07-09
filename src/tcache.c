@@ -11,15 +11,34 @@
 /******************************************************************************/
 /* Data. */
 
+#if defined(__BIONIC__) && !defined(ANDROID_ENABLE_TCACHE)
+bool opt_tcache = false;
+#else
 bool opt_tcache = true;
+#endif
 
-/* global_do_not_change_tcache_maxclass is set to 32KB by default. */
+#if defined(ANDROID_LG_TCACHE_MAXCLASS_DEFAULT)
+#  if ANDROID_LG_TCACHE_MAXCLASS_DEFAULT > TCACHE_LG_MAXCLASS_LIMIT
+size_t opt_tcache_max = ((size_t)1) << TCACHE_LG_MAXCLASS_LIMIT;
+#  else
+size_t opt_tcache_max = ((size_t)1) << ANDROID_LG_TCACHE_MAXCLASS_DEFAULT;
+#  endif
+#else
 size_t opt_tcache_max = ((size_t)1) << 15;
+#endif
 
 /* Reasonable defaults for min and max values. */
 unsigned opt_tcache_nslots_small_min = 20;
+#if defined(ANDROID_TCACHE_NSLOTS_SMALL_MAX)
+unsigned opt_tcache_nslots_small_max = ANDROID_TCACHE_NSLOTS_SMALL_MAX;
+#else
 unsigned opt_tcache_nslots_small_max = 200;
+#endif
+#if defined(ANDROID_TCACHE_NSLOTS_LARGE)
+unsigned opt_tcache_nslots_large = ANDROID_TCACHE_NSLOTS_LARGE;
+#else
 unsigned opt_tcache_nslots_large = 20;
+#endif
 
 /*
  * We attempt to make the number of slots in a tcache bin for a given size class

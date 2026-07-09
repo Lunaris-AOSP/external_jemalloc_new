@@ -1,0 +1,229 @@
+//
+// Copyright (C) 2018 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package {
+    default_applicable_licenses: ["external_jemalloc_new_license"],
+}
+
+license {
+    name: "external_jemalloc_new_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-ISC",
+        "SPDX-license-identifier-MIT",
+        "legacy_unencumbered",
+    ],
+    license_text: [
+        "COPYING",
+    ],
+}
+
+common_cflags = [
+    "-D_GNU_SOURCE",
+    "-D_REENTRANT",
+    "-Wall",
+    "-Wshorten-64-to-32",
+    "-Wsign-compare",
+    "-Wundef",
+    "-Wno-format-zero-length",
+    "-pipe",
+    "-g3",
+    "-fvisibility=hidden",
+    "-O3",
+    "-funroll-loops",
+    "-Wno-unused-parameter",
+    "-Wno-unused-function",
+    "-Wno-missing-field-initializers",
+    "-U_FORTIFY_SOURCE",
+    "-DANDROID_ENABLE_TCACHE",
+]
+
+common_c_local_includes = [
+    "src",
+    "include",
+]
+
+android_common_cflags = [
+    "-DANDROID_LG_TCACHE_MAXCLASS_DEFAULT=16",
+    "-DANDROID_NUM_ARENAS=4",
+    "-DANDROID_TCACHE_NSLOTS_SMALL_MAX=16",
+    "-DANDROID_TCACHE_NSLOTS_LARGE=20",
+]
+
+android_product_variables = {
+    malloc_low_memory: {
+        cflags: [
+            "-UANDROID_ENABLE_TCACHE",
+            "-UANDROID_NUM_ARENAS",
+            "-DANDROID_NUM_ARENAS=1",
+            "-UANDROID_TCACHE_NSLOTS_SMALL_MAX",
+            "-DANDROID_TCACHE_NSLOTS_SMALL_MAX=2",
+            "-UANDROID_TCACHE_NSLOTS_LARGE",
+            "-DANDROID_TCACHE_NSLOTS_LARGE=1",
+        ],
+    },
+}
+
+cc_defaults {
+    name: "jemalloc5_defaults",
+    host_supported: true,
+    native_bridge_supported: true,
+    cflags: common_cflags,
+
+    target: {
+        android: {
+            cflags: android_common_cflags,
+            product_variables: android_product_variables,
+        },
+        linux_bionic: {
+            enabled: true,
+        },
+    },
+
+    local_include_dirs: common_c_local_includes,
+    stl: "none",
+}
+
+lib_src_files = [
+    "src/jemalloc.c",
+    "src/arena.c",
+    "src/background_thread.c",
+    "src/base.c",
+    "src/bin.c",
+    "src/bin_info.c",
+    "src/bitmap.c",
+    "src/buf_writer.c",
+    "src/cache_bin.c",
+    "src/ckh.c",
+    "src/counter.c",
+    "src/ctl.c",
+    "src/decay.c",
+    "src/div.c",
+    "src/ecache.c",
+    "src/edata.c",
+    "src/edata_cache.c",
+    "src/ehooks.c",
+    "src/emap.c",
+    "src/eset.c",
+    "src/exp_grow.c",
+    "src/extent.c",
+    "src/extent_dss.c",
+    "src/extent_mmap.c",
+    "src/fxp.c",
+    "src/san.c",
+    "src/san_bump.c",
+    "src/hook.c",
+    "src/hpa.c",
+    "src/hpa_central.c",
+    "src/hpa_hooks.c",
+    "src/hpa_utils.c",
+    "src/hpdata.c",
+    "src/inspect.c",
+    "src/large.c",
+    "src/log.c",
+    "src/malloc_io.c",
+    "src/conf.c",
+    "src/mutex.c",
+    "src/nstime.c",
+    "src/pa.c",
+    "src/pa_extra.c",
+    "src/pac.c",
+    "src/pages.c",
+    "src/peak_event.c",
+    "src/prof.c",
+    "src/prof_data.c",
+    "src/prof_log.c",
+    "src/prof_recent.c",
+    "src/prof_stack_range.c",
+    "src/prof_stats.c",
+    "src/prof_sys.c",
+    "src/psset.c",
+    "src/rtree.c",
+    "src/safety_check.c",
+    "src/sc.c",
+    "src/sec.c",
+    "src/stats.c",
+    "src/sz.c",
+    "src/tcache.c",
+    "src/test_hooks.c",
+    "src/thread_event.c",
+    "src/thread_event_registry.c",
+    "src/ticker.c",
+    "src/tsd.c",
+    "src/util.c",
+    "src/witness.c",
+]
+
+cc_library {
+    name: "libjemalloc5",
+    ramdisk_available: true,
+    vendor_ramdisk_available: true,
+    recovery_available: true,
+
+    defaults: ["jemalloc5_defaults"],
+
+    srcs: lib_src_files,
+
+    export_include_dirs: ["include"],
+
+    target: {
+        android: {
+            shared: {
+                enabled: false,
+            },
+            system_shared_libs: [],
+            header_libs: ["libc_headers"],
+        },
+        linux_bionic: {
+            system_shared_libs: [],
+            header_libs: ["libc_headers"],
+        },
+        musl: {
+            system_shared_libs: ["libc_musl"],
+        },
+    },
+    apex_available: [
+        "com.android.runtime",
+    ],
+}
+
+cc_library_host_static {
+    name: "libjemalloc5_je_prefixed",
+
+    defaults: ["jemalloc5_defaults"],
+
+    cflags: ["-DJEMALLOC_NO_RENAME"],
+
+    srcs: lib_src_files,
+
+    export_include_dirs: ["include"],
+
+    target: {
+        linux_bionic: {
+            system_shared_libs: [],
+            header_libs: ["libc_headers"],
+        },
+        musl: {
+            system_shared_libs: ["libc_musl"],
+        },
+    },
+
+    visibility: [
+        "//external/rust/android-crates-io/crates/tikv-jemalloc-sys:__subpackages__",
+    ],
+}

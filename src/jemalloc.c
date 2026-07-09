@@ -1046,6 +1046,9 @@ malloc_init_hard_recursible(void) {
 
 static unsigned
 malloc_narenas_default(void) {
+#if defined(__BIONIC__) && defined(ANDROID_NUM_ARENAS)
+	return ANDROID_NUM_ARENAS;
+#endif
 	assert(ncpus > 0);
 	/*
 	 * For SMP systems, create more than one arena per CPU by
@@ -3457,3 +3460,9 @@ jemalloc_postfork_child(void) {
 }
 
 /******************************************************************************/
+
+#if defined(__BIONIC__) && !defined(JEMALLOC_JET)
+#include "android_je_iterate.c"
+#include "android_je_mallinfo.c"
+#include "android_je_stats.c"
+#endif
