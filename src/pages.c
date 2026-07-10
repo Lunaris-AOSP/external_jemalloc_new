@@ -749,7 +749,7 @@ os_overcommits_sysctl(void) {
 }
 #endif
 
-#ifdef JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY
+#if defined(JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY) && !defined(__ANDROID__)
 static bool
 os_overcommits_proc(void) {
 	int  fd;
@@ -902,7 +902,12 @@ pages_boot(void) {
 	mmap_flags = MAP_PRIVATE | MAP_ANON;
 #endif
 
-#ifdef JEMALLOC_SYSCTL_VM_OVERCOMMIT
+#if defined(__ANDROID__)
+	os_overcommits = true;
+#	ifdef MAP_NORESERVE
+	mmap_flags |= MAP_NORESERVE;
+#	endif
+#elif defined(JEMALLOC_SYSCTL_VM_OVERCOMMIT)
 	os_overcommits = os_overcommits_sysctl();
 #elif defined(JEMALLOC_PROC_SYS_VM_OVERCOMMIT_MEMORY)
 	os_overcommits = os_overcommits_proc();
